@@ -1,16 +1,4 @@
-/*
- * MÓDULO 1: Productor-Consumidor con Semáforos y Mutex
- * Centro de Paquetería - Sistemas Operativos
- * UDLAP - Primavera 2026
- *
- * Descripción:
- *   Simula un centro de distribución donde un hilo productor genera paquetes
- *   y múltiples hilos consumidores (trabajadores) los procesan.
- *   Se usan semáforos POSIX y mutex para sincronización.
- *
- * Compilar: gcc -o modulo1 modulo1_productor_consumidor.c -lpthread -lrt
- * Ejecutar: ./modulo1
- */
+//MÓDULO 1: Productor-Consumidor con Semáforos y Mutex
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,48 +8,42 @@
 #include <string.h>
 #include <time.h>
 
-/* ─── Configuración ─────────────────────────────────── */
-#define BUFFER_SIZE      10      /* capacidad máxima del buffer (cola) */
-#define NUM_CONSUMIDORES  3      /* número de trabajadores */
-#define TOTAL_PAQUETES   20      /* paquetes que generará el productor */
-
-/* ─── Estructura de un paquete ───────────────────────── */
+//paquete
 typedef struct {
     int    id;
     char   destino[32];
     float  peso_kg;
-    char   estado[16];   /* "EN_COLA", "PROCESANDO", "ENTREGADO" */
+    char   estado[16];
     time_t timestamp;
 } Paquete;
 
-/* ─── Recursos compartidos ────────────────────────────── */
-static Paquete cola[BUFFER_SIZE];
-static int     head = 0;          /* índice de extracción */
-static int     tail = 0;          /* índice de inserción  */
-static int     count = 0;         /* paquetes en la cola  */
+//Parametros por default
+static int BUFFER_SIZE      = 10;
+static int NUM_CONSUMIDORES =  3;
+static int TOTAL_PAQUETES   = 20;
 
-/* ─── Primitivas de sincronización ───────────────────── */
-static pthread_mutex_t mutex_cola;   /* exclusión mutua sobre la cola    */
-static sem_t           sem_vacios;   /* espacios disponibles en el buffer */
-static sem_t           sem_llenos;   /* paquetes disponibles para consumir */
+//Recursos a proteger
+static Paquete *cola  = NULL;
+static int      head  = 0;
+static int      tail  = 0;
+static int      count = 0;
 
-/* ─── Contadores globales (para métricas) ─────────────── */
+//Sincronización
+static pthread_mutex_t mutex_cola;
+static sem_t           sem_vacios;
+static sem_t           sem_llenos;
+
+//Contadores
 static int paquetes_producidos = 0;
 static int paquetes_consumidos = 0;
 
-
-
-/* ─── Función auxiliar: timestamp legible ─────────────── */
 static void timestamp(char *buf, size_t n) {
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
     strftime(buf, n, "%H:%M:%S", tm);
 }
 
-/* ══════════════════════════════════════════════════════
- *  PRODUCTOR
- *  Genera TOTAL_PAQUETES paquetes y los inserta en la cola.
- * ══════════════════════════════════════════════════════ */
+//productor
 void *productor(void *arg) {
     (void)arg;
     char ts[16];
@@ -70,19 +52,17 @@ void *productor(void *arg) {
     };
 
     for (int i = 1; i <= TOTAL_PAQUETES; i++) {
-        /* ── Preparar paquete antes de entrar a sección crítica ── */
         Paquete p;
-        p.id        = i;
-        p.peso_kg   = 0.5f + (rand() % 200) / 10.0f;
+        p.id      = i;
+        p.peso_kg = 0.5f + (rand() % 200) / 10.0f;
         p.timestamp = time(NULL);
         strncpy(p.destino, destinos[rand() % 5], sizeof(p.destino) - 1);
+        p.destino[sizeof(p.destino) - 1] = '\0';
         strncpy(p.estado, "EN_COLA", sizeof(p.estado) - 1);
+        p.estado[sizeof(p.estado) - 1] = '\0';
 
-        /* ── Esperar espacio disponible en el buffer ── */
-        sem_wait(&sem_vacios);
-
-        /* ── Sección crítica: insertar en la cola ── */
-        pthread_mutex_lock(&mutex_cola);
+        sem_wait(&sem_vacios);            /* esperar espacio en buffer     */
+        pthread_mutex_lock(&mutex_cola);  /* -- SECCIÓN CRÍTICA: inicio -- */
 
         cola[tail] = p;
         tail = (tail + 1) % BUFFER_SIZE;
@@ -90,30 +70,22 @@ void *productor(void *arg) {
         paquetes_producidos++;
 
         timestamp(ts, sizeof(ts));
-        printf("[%s] PRODUCTOR  → Paquete #%02d | Destino: %-12s | Peso: %.1f kg | Cola: %d/%d\n",
+        printf("[%s] PRODUCTOR  → Paquete #%02d | Destino: %-12s | "
+               "Peso: %.1f kg | Cola: %d/%d\n",
                ts, p.id, p.destino, p.peso_kg, count, BUFFER_SIZE);
 
-        pthread_mutex_unlock(&mutex_cola);
+        pthread_mutex_unlock(&mutex_cola); /* -- SECCIÓN CRÍTICA: fin --  */
+        sem_post(&sem_llenos);             /* señalar paquete disponible   */
 
-        /* ── Señalar que hay un paquete disponible ── */
-        sem_post(&sem_llenos);
-
-        /* Simula tiempo entre llegadas de paquetes */
         usleep((100 + rand() % 300) * 1000);
     }
 
     printf("\n[PRODUCTOR] Todos los paquetes han sido generados.\n");
 
     /*
-     * FIX: Enviar NUM_CONSUMIDORES señales "fantasma" a sem_llenos.
-     *
-     * Sin esto ocurre deadlock: los consumidores quedan bloqueados para
-     * siempre en sem_wait(&sem_llenos) porque el semáforo ya llegó a 0
-     * y nadie vuelve a hacer sem_post.  Con estas señales cada consumidor
-     * despierta, entra a la sección crítica, detecta que
-     * paquetes_consumidos >= TOTAL_PAQUETES y sale del loop.
-     * El propio sem_post(&sem_llenos) dentro del if propaga la señal
-     * al siguiente consumidor en cadena.
+     * Señales "fantasma": despiertan a cada consumidor bloqueado en
+     * sem_wait(&sem_llenos) para que detecte la condición de parada y salga.
+     * El propio consumidor propaga la señal al siguiente en cadena.
      */
     for (int i = 0; i < NUM_CONSUMIDORES; i++)
         sem_post(&sem_llenos);
@@ -121,25 +93,18 @@ void *productor(void *arg) {
     return NULL;
 }
 
-/* ══════════════════════════════════════════════════════
- *  CONSUMIDOR (TRABAJADOR)
- *  Extrae paquetes de la cola y los "procesa".
- * ══════════════════════════════════════════════════════ */
+// Consumidor
 void *consumidor(void *arg) {
     int id_trabajador = *((int *)arg);
     char ts[16];
 
     while (1) {
-        /* ── Esperar paquete disponible ── */
-        sem_wait(&sem_llenos);
+        sem_wait(&sem_llenos);            /* esperar paquete disponible    */
+        pthread_mutex_lock(&mutex_cola);  /* -- SECCIÓN CRÍTICA: inicio -- */
 
-        /* ── Sección crítica: extraer de la cola ── */
-        pthread_mutex_lock(&mutex_cola);
-
-        /* Condición de parada: productor terminó y cola vacía */
         if (paquetes_consumidos >= TOTAL_PAQUETES) {
             pthread_mutex_unlock(&mutex_cola);
-            sem_post(&sem_llenos);   /* propagar señal al siguiente consumidor */
+            sem_post(&sem_llenos);        /* propagar señal al siguiente   */
             break;
         }
 
@@ -148,17 +113,16 @@ void *consumidor(void *arg) {
         count--;
         paquetes_consumidos++;
         strncpy(p.estado, "PROCESANDO", sizeof(p.estado) - 1);
+        p.estado[sizeof(p.estado) - 1] = '\0';
 
         timestamp(ts, sizeof(ts));
-        printf("[%s] TRABAJADOR %d → Procesando #%02d | Destino: %-12s | Cola restante: %d\n",
+        printf("[%s] TRABAJADOR %d → Procesando #%02d | Destino: %-12s | "
+               "Cola restante: %d\n",
                ts, id_trabajador, p.id, p.destino, count);
 
-        pthread_mutex_unlock(&mutex_cola);
+        pthread_mutex_unlock(&mutex_cola); /* -- SECCIÓN CRÍTICA: fin --  */
+        sem_post(&sem_vacios);             /* liberar espacio en buffer    */
 
-        /* ── Señalar que se liberó un espacio ── */
-        sem_post(&sem_vacios);
-
-        /* Simula tiempo de procesamiento */
         usleep((200 + rand() % 500) * 1000);
 
         timestamp(ts, sizeof(ts));
@@ -170,53 +134,83 @@ void *consumidor(void *arg) {
     return NULL;
 }
 
-/* ══════════════════════════════════════════════════════
- *  MAIN
- * ══════════════════════════════════════════════════════ */
-int main(void) {
+int main(int argc, char *argv[]) {
+
+    if (argc == 4) {
+        int b = atoi(argv[1]);
+        int w = atoi(argv[2]);
+        int p = atoi(argv[3]);
+
+        if (b < 1 || w < 1 || p < 1) {
+            fprintf(stderr, "Error: los tres argumentos deben ser enteros positivos.\n");
+            fprintf(stderr, "Uso:     %s <buffer> <trabajadores> <paquetes>\n", argv[0]);
+            fprintf(stderr, "Ejemplo: %s 10 4 60\n", argv[0]);
+            return 1;
+        }
+        //porque 64 PREGUNTA
+        if (w > 64) {
+            fprintf(stderr, "Error: número máximo de trabajadores: 64.\n");
+            return 1;
+        }
+
+        BUFFER_SIZE      = b;
+        NUM_CONSUMIDORES = w;
+        TOTAL_PAQUETES   = p;
+
+    } else if (argc != 1) {
+        fprintf(stderr, "Uso:     %s <buffer> <trabajadores> <paquetes>\n", argv[0]);
+        fprintf(stderr, "         %s  (sin argumentos usa valores por defecto: 10 3 20)\n", argv[0]);
+        fprintf(stderr, "Ejemplo: %s 10 4 60\n", argv[0]);
+        return 1;
+    }
     srand((unsigned)time(NULL));
 
-    printf("╔══════════════════════════════════════════════════╗\n");
-    printf("║   MÓDULO 1 – Productor-Consumidor (mutex+sem)    ║\n");
-    printf("║   Buffer: %d  │  Trabajadores: %d  │  Paquetes: %d  ║\n",
-           BUFFER_SIZE, NUM_CONSUMIDORES, TOTAL_PAQUETES);
-    printf("╚══════════════════════════════════════════════════╝\n\n");
+    cola = malloc((size_t)BUFFER_SIZE * sizeof(Paquete));
+    if (!cola) {
+        fprintf(stderr, "Error: no se pudo reservar memoria para la cola.\n");
+        return 1;
+    }
 
-    /* ── Inicializar primitivas de sincronización ── */
+
+    printf("MÓDULO 1 Productor-Consumidor\n");
+    printf("Buffer      : %d║\n", BUFFER_SIZE);
+    printf("Trabajadores: %d║\n", NUM_CONSUMIDORES);
+    printf("Paquetes    : %d║\n", TOTAL_PAQUETES);
+
     pthread_mutex_init(&mutex_cola, NULL);
-    sem_init(&sem_vacios, 0, BUFFER_SIZE);   /* buffer vacío al inicio */
-    sem_init(&sem_llenos, 0, 0);             /* sin paquetes al inicio */
+    sem_init(&sem_vacios, 0, (unsigned)BUFFER_SIZE);
+    sem_init(&sem_llenos, 0, 0);
 
-    /* ── Crear hilos ── */
-    pthread_t hilo_productor;
-    pthread_t hilos_consumidor[NUM_CONSUMIDORES];
-    int ids[NUM_CONSUMIDORES];
+    pthread_t  hilo_productor;
+    pthread_t *hilos_consumidor = malloc((size_t)NUM_CONSUMIDORES * sizeof(pthread_t));
+    int       *ids              = malloc((size_t)NUM_CONSUMIDORES * sizeof(int));
+
+    if (!hilos_consumidor || !ids) {
+        fprintf(stderr, "Error: memoria insuficiente para los hilos.\n");
+        free(cola);
+        return 1;
+    }
 
     pthread_create(&hilo_productor, NULL, productor, NULL);
-
     for (int i = 0; i < NUM_CONSUMIDORES; i++) {
         ids[i] = i + 1;
         pthread_create(&hilos_consumidor[i], NULL, consumidor, &ids[i]);
     }
 
-    /* ── Esperar a que todos terminen ── */
     pthread_join(hilo_productor, NULL);
     for (int i = 0; i < NUM_CONSUMIDORES; i++)
         pthread_join(hilos_consumidor[i], NULL);
 
-    /* ── Resumen ── */
-    printf("\n╔══════════════════════════════════════════════════╗\n");
-    printf("║                    RESUMEN FINAL                ║\n");
-    printf("╠══════════════════════════════════════════════════╣\n");
-    printf("║  Paquetes producidos : %-26d║\n", paquetes_producidos);
-    printf("║  Paquetes consumidos : %-26d║\n", paquetes_consumidos);
-    printf("║  Paquetes en cola    : %-26d║\n", count);
-    printf("╚══════════════════════════════════════════════════╝\n");
+    printf("Paquetes producidos : %d\n", paquetes_producidos);
+    printf("Paquetes consumidos : %d\n", paquetes_consumidos);
+    printf("Paquetes en cola    : %d\n", count);
 
-    /* ── Limpiar recursos ── */
     pthread_mutex_destroy(&mutex_cola);
     sem_destroy(&sem_vacios);
     sem_destroy(&sem_llenos);
+    free(cola);
+    free(hilos_consumidor);
+    free(ids);
 
     return 0;
 }
