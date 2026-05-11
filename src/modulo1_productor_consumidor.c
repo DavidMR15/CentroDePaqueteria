@@ -49,13 +49,7 @@ static sem_t           sem_llenos;   /* paquetes disponibles para consumir */
 static int paquetes_producidos = 0;
 static int paquetes_consumidos = 0;
 
-/* ─── Colores ANSI ────────────────────────────────────── */
-#define RESET   "\033[0m"
-#define ROJO    "\033[31m"
-#define VERDE   "\033[32m"
-#define AMARILLO "\033[33m"
-#define CYAN    "\033[36m"
-#define BLANCO  "\033[37m"
+
 
 /* ─── Función auxiliar: timestamp legible ─────────────── */
 static void timestamp(char *buf, size_t n) {
@@ -96,7 +90,7 @@ void *productor(void *arg) {
         paquetes_producidos++;
 
         timestamp(ts, sizeof(ts));
-        printf(AMARILLO "[%s] PRODUCTOR  → Paquete #%02d | Destino: %-12s | Peso: %.1f kg | Cola: %d/%d\n" RESET,
+        printf("[%s] PRODUCTOR  → Paquete #%02d | Destino: %-12s | Peso: %.1f kg | Cola: %d/%d\n",
                ts, p.id, p.destino, p.peso_kg, count, BUFFER_SIZE);
 
         pthread_mutex_unlock(&mutex_cola);
@@ -108,7 +102,22 @@ void *productor(void *arg) {
         usleep((100 + rand() % 300) * 1000);
     }
 
-    printf(CYAN "\n[PRODUCTOR] Todos los paquetes han sido generados.\n" RESET);
+    printf("\n[PRODUCTOR] Todos los paquetes han sido generados.\n");
+
+    /*
+     * FIX: Enviar NUM_CONSUMIDORES señales "fantasma" a sem_llenos.
+     *
+     * Sin esto ocurre deadlock: los consumidores quedan bloqueados para
+     * siempre en sem_wait(&sem_llenos) porque el semáforo ya llegó a 0
+     * y nadie vuelve a hacer sem_post.  Con estas señales cada consumidor
+     * despierta, entra a la sección crítica, detecta que
+     * paquetes_consumidos >= TOTAL_PAQUETES y sale del loop.
+     * El propio sem_post(&sem_llenos) dentro del if propaga la señal
+     * al siguiente consumidor en cadena.
+     */
+    for (int i = 0; i < NUM_CONSUMIDORES; i++)
+        sem_post(&sem_llenos);
+
     return NULL;
 }
 
@@ -117,7 +126,6 @@ void *productor(void *arg) {
  *  Extrae paquetes de la cola y los "procesa".
  * ══════════════════════════════════════════════════════ */
 void *consumidor(void *arg) {
-    (void)arg;
     int id_trabajador = *((int *)arg);
     char ts[16];
 
@@ -131,7 +139,7 @@ void *consumidor(void *arg) {
         /* Condición de parada: productor terminó y cola vacía */
         if (paquetes_consumidos >= TOTAL_PAQUETES) {
             pthread_mutex_unlock(&mutex_cola);
-            sem_post(&sem_llenos);   /* avisar a otros consumidores */
+            sem_post(&sem_llenos);   /* propagar señal al siguiente consumidor */
             break;
         }
 
@@ -142,7 +150,7 @@ void *consumidor(void *arg) {
         strncpy(p.estado, "PROCESANDO", sizeof(p.estado) - 1);
 
         timestamp(ts, sizeof(ts));
-        printf(VERDE "[%s] TRABAJADOR %d → Procesando #%02d | Destino: %-12s | Cola restante: %d\n" RESET,
+        printf("[%s] TRABAJADOR %d → Procesando #%02d | Destino: %-12s | Cola restante: %d\n",
                ts, id_trabajador, p.id, p.destino, count);
 
         pthread_mutex_unlock(&mutex_cola);
@@ -154,10 +162,11 @@ void *consumidor(void *arg) {
         usleep((200 + rand() % 500) * 1000);
 
         timestamp(ts, sizeof(ts));
-        printf(VERDE "[%s] TRABAJADOR %d ✓ Entregado  #%02d | Destino: %-12s\n" RESET,
+        printf("[%s] TRABAJADOR %d ✓ Entregado  #%02d | Destino: %-12s\n",
                ts, id_trabajador, p.id, p.destino);
     }
 
+    printf("[TRABAJADOR %d] Turno terminado.\n", id_trabajador);
     return NULL;
 }
 
@@ -167,11 +176,11 @@ void *consumidor(void *arg) {
 int main(void) {
     srand((unsigned)time(NULL));
 
-    printf(BLANCO "╔══════════════════════════════════════════════════╗\n");
+    printf("╔══════════════════════════════════════════════════╗\n");
     printf("║   MÓDULO 1 – Productor-Consumidor (mutex+sem)    ║\n");
     printf("║   Buffer: %d  │  Trabajadores: %d  │  Paquetes: %d  ║\n",
            BUFFER_SIZE, NUM_CONSUMIDORES, TOTAL_PAQUETES);
-    printf("╚══════════════════════════════════════════════════╝\n\n" RESET);
+    printf("╚══════════════════════════════════════════════════╝\n\n");
 
     /* ── Inicializar primitivas de sincronización ── */
     pthread_mutex_init(&mutex_cola, NULL);
@@ -196,13 +205,13 @@ int main(void) {
         pthread_join(hilos_consumidor[i], NULL);
 
     /* ── Resumen ── */
-    printf(BLANCO "\n╔══════════════════════════════════════════════════╗\n");
+    printf("\n╔══════════════════════════════════════════════════╗\n");
     printf("║                    RESUMEN FINAL                ║\n");
     printf("╠══════════════════════════════════════════════════╣\n");
     printf("║  Paquetes producidos : %-26d║\n", paquetes_producidos);
     printf("║  Paquetes consumidos : %-26d║\n", paquetes_consumidos);
     printf("║  Paquetes en cola    : %-26d║\n", count);
-    printf("╚══════════════════════════════════════════════════╝\n" RESET);
+    printf("╚══════════════════════════════════════════════════╝\n");
 
     /* ── Limpiar recursos ── */
     pthread_mutex_destroy(&mutex_cola);
