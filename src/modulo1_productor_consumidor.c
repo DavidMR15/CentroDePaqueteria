@@ -168,9 +168,9 @@ int main(int argc, char *argv[]) {
 
 
     printf("MÓDULO 1 Productor-Consumidor\n");
-    printf("Buffer      : %d║\n", BUFFER_SIZE);
-    printf("Trabajadores: %d║\n", NUM_CONSUMIDORES);
-    printf("Paquetes    : %d║\n", TOTAL_PAQUETES);
+    printf("Buffer      : %d\n", BUFFER_SIZE);
+    printf("Trabajadores: %d\n", NUM_CONSUMIDORES);
+    printf("Paquetes    : %d\n", TOTAL_PAQUETES);
 
     pthread_mutex_init(&mutex_cola, NULL);
     sem_init(&sem_vacios, 0, (unsigned)BUFFER_SIZE);
