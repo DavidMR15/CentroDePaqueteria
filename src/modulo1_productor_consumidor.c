@@ -61,8 +61,8 @@ void *productor(void *arg) {
         strncpy(p.estado, "EN_COLA", sizeof(p.estado) - 1);
         p.estado[sizeof(p.estado) - 1] = '\0';
 
-        sem_wait(&sem_vacios);            /* esperar espacio en buffer     */
-        pthread_mutex_lock(&mutex_cola);  /* -- SECCIÓN CRÍTICA: inicio -- */
+        sem_wait(&sem_vacios);            
+        pthread_mutex_lock(&mutex_cola); 
 
         cola[tail] = p;
         tail = (tail + 1) % BUFFER_SIZE;
@@ -70,23 +70,18 @@ void *productor(void *arg) {
         paquetes_producidos++;
 
         timestamp(ts, sizeof(ts));
-        printf("[%s] PRODUCTOR  → Paquete #%02d | Destino: %-12s | "
+        printf("[%s] PRODUCTOR  Paquete #%d | Destino: %s | "
                "Peso: %.1f kg | Cola: %d/%d\n",
                ts, p.id, p.destino, p.peso_kg, count, BUFFER_SIZE);
 
-        pthread_mutex_unlock(&mutex_cola); /* -- SECCIÓN CRÍTICA: fin --  */
-        sem_post(&sem_llenos);             /* señalar paquete disponible   */
+        pthread_mutex_unlock(&mutex_cola); 
+        sem_post(&sem_llenos);            
 
         usleep((100 + rand() % 300) * 1000);
     }
 
     printf("\n[PRODUCTOR] Todos los paquetes han sido generados.\n");
 
-    /*
-     * Señales "fantasma": despiertan a cada consumidor bloqueado en
-     * sem_wait(&sem_llenos) para que detecte la condición de parada y salga.
-     * El propio consumidor propaga la señal al siguiente en cadena.
-     */
     for (int i = 0; i < NUM_CONSUMIDORES; i++)
         sem_post(&sem_llenos);
 
@@ -99,12 +94,12 @@ void *consumidor(void *arg) {
     char ts[16];
 
     while (1) {
-        sem_wait(&sem_llenos);            /* esperar paquete disponible    */
-        pthread_mutex_lock(&mutex_cola);  /* -- SECCIÓN CRÍTICA: inicio -- */
+        sem_wait(&sem_llenos);        
+        pthread_mutex_lock(&mutex_cola);
 
         if (paquetes_consumidos >= TOTAL_PAQUETES) {
             pthread_mutex_unlock(&mutex_cola);
-            sem_post(&sem_llenos);        /* propagar señal al siguiente   */
+            sem_post(&sem_llenos);
             break;
         }
 
@@ -116,17 +111,17 @@ void *consumidor(void *arg) {
         p.estado[sizeof(p.estado) - 1] = '\0';
 
         timestamp(ts, sizeof(ts));
-        printf("[%s] TRABAJADOR %d → Procesando #%02d | Destino: %-12s | "
+        printf("[%s] TRABAJADOR %d Procesando #%02d | Destino: %-12s | "
                "Cola restante: %d\n",
                ts, id_trabajador, p.id, p.destino, count);
 
-        pthread_mutex_unlock(&mutex_cola); /* -- SECCIÓN CRÍTICA: fin --  */
-        sem_post(&sem_vacios);             /* liberar espacio en buffer    */
+        pthread_mutex_unlock(&mutex_cola);
+        sem_post(&sem_vacios);        
 
         usleep((200 + rand() % 500) * 1000);
 
         timestamp(ts, sizeof(ts));
-        printf("[%s] TRABAJADOR %d ✓ Entregado  #%02d | Destino: %-12s\n",
+        printf("[%s] TRABAJADOR %d Entregado  #%02d | Destino: %-12s\n",
                ts, id_trabajador, p.id, p.destino);
     }
 
@@ -173,9 +168,9 @@ int main(int argc, char *argv[]) {
 
 
     printf("MÓDULO 1 Productor-Consumidor\n");
-    printf("Buffer      : %d║\n", BUFFER_SIZE);
-    printf("Trabajadores: %d║\n", NUM_CONSUMIDORES);
-    printf("Paquetes    : %d║\n", TOTAL_PAQUETES);
+    printf("Buffer      : %d\n", BUFFER_SIZE);
+    printf("Trabajadores: %d\n", NUM_CONSUMIDORES);
+    printf("Paquetes    : %d\n", TOTAL_PAQUETES);
 
     pthread_mutex_init(&mutex_cola, NULL);
     sem_init(&sem_vacios, 0, (unsigned)BUFFER_SIZE);
