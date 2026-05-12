@@ -35,14 +35,13 @@ project/
 ├── src/
 │   ├── modulo1_productor_consumidor.c
 │   ├── modulo2_condicion_carrera.c
-│   ├── modulo3_deadlock.c
-│   └── modulo4_metricas.c
+│   └── modulo3_metricas.c
 ├── scripts/
 │   └── build_and_run.sh
 ├── results/
-│   ├── logs/          ← salida de cada módulo
-│   ├── tables/        ← tablas de métricas 
-│   └── screenshots/   ← capturas de pantalla
+│   ├── logs/         
+│   ├── tables/       
+│   └── screenshots/  
 └── README.md
 ```
 
@@ -73,12 +72,8 @@ gcc -Wall -O2 -o bin/modulo1 src/modulo1_productor_consumidor.c -lpthread -lrt
 gcc -Wall -O2 -o bin/modulo2 src/modulo2_condicion_carrera.c -lpthread
 ./bin/modulo2
 
-# Módulo 3 – Deadlock
-gcc -Wall -O2 -o bin/modulo3 src/modulo3_deadlock.c -lpthread
-./bin/modulo3
-
-# Módulo 4 – Métricas de CPU
-gcc -Wall -O2 -o bin/modulo4 src/modulo4_metricas.c -lpthread -lm
+# Módulo 3 – Métricas de CPU
+gcc -Wall -O2 -o bin/modulo3 src/modulo3_metricas.c -lpthread -lm
 ./bin/modulo4
 ```
 
@@ -90,8 +85,7 @@ gcc -Wall -O2 -o bin/modulo4 src/modulo4_metricas.c -lpthread -lm
 |---|--------|----------------|
 | 1 | Productor-Consumidor | Hilos, semáforos, mutex, buffer circular |
 | 2 | Condición de carrera | Race condition, exclusión mutua |
-| 3 | Deadlock | Detección, prevención, orden global de locks |
-| 4 | Métricas de CPU | Turnaround, tiempo de espera, throughput |
+| 3 | Métricas de CPU | Turnaround, tiempo de espera, throughput |
 
 ---
 
@@ -100,7 +94,7 @@ gcc -Wall -O2 -o bin/modulo4 src/modulo4_metricas.c -lpthread -lm
 ### Módulo 1
 
 - El productor inserta exactamente `TOTAL_PAQUETES` paquetes.
-- Los 3 trabajadores los consumen sin pérdidas ni duplicados.
+- Los trabajadores los consumen sin pérdidas ni duplicados.
 - El resumen final muestra `producidos == consumidos`.
 
 ### Módulo 2
