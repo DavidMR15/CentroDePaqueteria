@@ -1,0 +1,72 @@
+MÓDULO 1 Productor-Consumidor
+Buffer      : 10
+Trabajadores: 3
+Paquetes    : 20
+[21:53:34] PRODUCTOR  Paquete #1 | Destino: CDMX | Peso: 11.0 kg | Cola: 1/10
+[21:53:34] TRABAJADOR 1 Procesando #01 | Destino: CDMX         | Cola restante: 0
+[21:53:34] PRODUCTOR  Paquete #2 | Destino: Monterrey | Peso: 5.1 kg | Cola: 1/10
+[21:53:34] TRABAJADOR 2 Procesando #02 | Destino: Monterrey    | Cola restante: 0
+[21:53:34] PRODUCTOR  Paquete #3 | Destino: Guadalajara | Peso: 11.1 kg | Cola: 1/10
+[21:53:34] TRABAJADOR 3 Procesando #03 | Destino: Guadalajara  | Cola restante: 0
+[21:53:34] TRABAJADOR 1 Entregado  #01 | Destino: CDMX        
+[21:53:35] PRODUCTOR  Paquete #4 | Destino: Guadalajara | Peso: 8.1 kg | Cola: 1/10
+[21:53:35] TRABAJADOR 1 Procesando #04 | Destino: Guadalajara  | Cola restante: 0
+[21:53:35] PRODUCTOR  Paquete #5 | Destino: Guadalajara | Peso: 1.1 kg | Cola: 1/10
+[21:53:35] TRABAJADOR 2 Entregado  #02 | Destino: Monterrey   
+[21:53:35] TRABAJADOR 2 Procesando #05 | Destino: Guadalajara  | Cola restante: 0
+[21:53:35] TRABAJADOR 3 Entregado  #03 | Destino: Guadalajara 
+[21:53:35] PRODUCTOR  Paquete #6 | Destino: Monterrey | Peso: 3.7 kg | Cola: 1/10
+[21:53:35] TRABAJADOR 3 Procesando #06 | Destino: Monterrey    | Cola restante: 0
+[21:53:35] TRABAJADOR 1 Entregado  #04 | Destino: Guadalajara 
+[21:53:35] TRABAJADOR 2 Entregado  #05 | Destino: Guadalajara 
+[21:53:35] PRODUCTOR  Paquete #7 | Destino: Monterrey | Peso: 12.2 kg | Cola: 1/10
+[21:53:35] TRABAJADOR 1 Procesando #07 | Destino: Monterrey    | Cola restante: 0
+[21:53:35] TRABAJADOR 3 Entregado  #06 | Destino: Monterrey   
+[21:53:35] PRODUCTOR  Paquete #8 | Destino: Oaxaca | Peso: 18.5 kg | Cola: 1/10
+[21:53:35] TRABAJADOR 2 Procesando #08 | Destino: Oaxaca       | Cola restante: 0
+[21:53:36] PRODUCTOR  Paquete #9 | Destino: CDMX | Peso: 6.8 kg | Cola: 1/10
+[21:53:36] TRABAJADOR 3 Procesando #09 | Destino: CDMX         | Cola restante: 0
+[21:53:36] PRODUCTOR  Paquete #10 | Destino: Puebla | Peso: 6.4 kg | Cola: 1/10
+[21:53:36] TRABAJADOR 3 Entregado  #09 | Destino: CDMX        
+[21:53:36] TRABAJADOR 3 Procesando #10 | Destino: Puebla       | Cola restante: 0
+[21:53:36] TRABAJADOR 1 Entregado  #07 | Destino: Monterrey   
+[21:53:36] PRODUCTOR  Paquete #11 | Destino: CDMX | Peso: 5.2 kg | Cola: 1/10
+[21:53:36] TRABAJADOR 1 Procesando #11 | Destino: CDMX         | Cola restante: 0
+[21:53:36] TRABAJADOR 2 Entregado  #08 | Destino: Oaxaca      
+[21:53:36] PRODUCTOR  Paquete #12 | Destino: Monterrey | Peso: 19.5 kg | Cola: 1/10
+[21:53:36] TRABAJADOR 2 Procesando #12 | Destino: Monterrey    | Cola restante: 0
+[21:53:36] TRABAJADOR 3 Entregado  #10 | Destino: Puebla      
+[21:53:36] PRODUCTOR  Paquete #13 | Destino: CDMX | Peso: 16.5 kg | Cola: 1/10
+[21:53:36] TRABAJADOR 3 Procesando #13 | Destino: CDMX         | Cola restante: 0
+[21:53:37] TRABAJADOR 1 Entregado  #11 | Destino: CDMX        
+[21:53:37] TRABAJADOR 2 Entregado  #12 | Destino: Monterrey   
+[21:53:37] PRODUCTOR  Paquete #14 | Destino: Puebla | Peso: 19.6 kg | Cola: 1/10
+[21:53:37] TRABAJADOR 1 Procesando #14 | Destino: Puebla       | Cola restante: 0
+[21:53:37] PRODUCTOR  Paquete #15 | Destino: Oaxaca | Peso: 2.3 kg | Cola: 1/10
+[21:53:37] TRABAJADOR 2 Procesando #15 | Destino: Oaxaca       | Cola restante: 0
+[21:53:37] TRABAJADOR 3 Entregado  #13 | Destino: CDMX        
+[21:53:37] TRABAJADOR 1 Entregado  #14 | Destino: Puebla      
+[21:53:37] TRABAJADOR 2 Entregado  #15 | Destino: Oaxaca      
+[21:53:37] PRODUCTOR  Paquete #16 | Destino: Oaxaca | Peso: 11.9 kg | Cola: 1/10
+[21:53:37] TRABAJADOR 3 Procesando #16 | Destino: Oaxaca       | Cola restante: 0
+[21:53:38] PRODUCTOR  Paquete #17 | Destino: Guadalajara | Peso: 17.8 kg | Cola: 1/10
+[21:53:38] TRABAJADOR 1 Procesando #17 | Destino: Guadalajara  | Cola restante: 0
+[21:53:38] TRABAJADOR 3 Entregado  #16 | Destino: Oaxaca      
+[21:53:38] PRODUCTOR  Paquete #18 | Destino: Guadalajara | Peso: 11.2 kg | Cola: 1/10
+[21:53:38] TRABAJADOR 2 Procesando #18 | Destino: Guadalajara  | Cola restante: 0
+[21:53:38] TRABAJADOR 1 Entregado  #17 | Destino: Guadalajara 
+[21:53:38] PRODUCTOR  Paquete #19 | Destino: Puebla | Peso: 15.3 kg | Cola: 1/10
+[21:53:38] TRABAJADOR 3 Procesando #19 | Destino: Puebla       | Cola restante: 0
+[21:53:38] TRABAJADOR 2 Entregado  #18 | Destino: Guadalajara 
+[21:53:39] PRODUCTOR  Paquete #20 | Destino: Puebla | Peso: 9.5 kg | Cola: 1/10
+[21:53:39] TRABAJADOR 1 Procesando #20 | Destino: Puebla       | Cola restante: 0
+[21:53:39] TRABAJADOR 3 Entregado  #19 | Destino: Puebla      
+
+[PRODUCTOR] Todos los paquetes han sido generados.
+[TRABAJADOR 2] Turno terminado.
+[TRABAJADOR 3] Turno terminado.
+[21:53:39] TRABAJADOR 1 Entregado  #20 | Destino: Puebla      
+[TRABAJADOR 1] Turno terminado.
+Paquetes producidos : 20
+Paquetes consumidos : 20
+Paquetes en cola    : 0

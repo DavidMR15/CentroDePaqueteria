@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "Ejemplo: %s 10 4 60\n", argv[0]);
             return 1;
         }
-        //porque 64 PREGUNTA
+        
         if (w > 64) {
             fprintf(stderr, "Error: número máximo de trabajadores: 64.\n");
             return 1;

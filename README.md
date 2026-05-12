@@ -1,18 +1,17 @@
 # Centro de Paquetería – Proyecto Final Sistemas Operativos
-**Universidad de las Américas Puebla | Primavera 2026**  
 David Miguel Medina Raymundo (183112) · María Fernanda Morales Hernández (183604)
 
 ---
 
 ## Descripción
 Simulación de un centro de distribución de paquetes que demuestra cuatro
-fenómenos clave de Sistemas Operativos mediante hilos POSIX en C.
+fenómenos clave de Sistemas Operativos mediante hilos en C.
 
 ---
 
 ## Dependencias
 ```
-gcc          (>= 9)
+gcc          
 libpthread   (incluida en glibc)
 libm         (incluida en glibc)
 librt        (incluida en glibc)
@@ -30,7 +29,7 @@ project/
 ├── src/
 │   ├── modulo1_productor_consumidor.c
 │   ├── modulo2_condicion_carrera.c
-│   ├── modulo3_deadlock.c
+│   ├── modulo4_metricas.c
 │   └── modulo4_metricas.c
 ├── scripts/
 │   └── build_and_run.sh

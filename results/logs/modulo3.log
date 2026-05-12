@@ -1,0 +1,15 @@
+MÓDULO 3 - Métricas de CPU corregidas
+Paquetes: 20 | Proceso: 30 ms | Llegada: 20 ms
+
+Workers  Buffer   Turnaround(ms)  Espera(ms)      Throughput      Total(ms) 
+
+1        5        121.0           90.7            32.95           607       
+2        5        30.4            0.1             47.95           417       
+4        5        30.5            0.1             47.88           418       
+8        5        30.5            0.2             47.93           417       
+
+1        10       125.4           95.1            32.98           606       
+2        10       30.4            0.1             47.97           417       
+4        10       30.4            0.1             47.95           417       
+8        10       30.4            0.1             47.91           417       
+
