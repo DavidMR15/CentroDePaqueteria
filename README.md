@@ -110,11 +110,6 @@ gcc -Wall -O2 -o bin/modulo4 src/modulo4_metricas.c -lpthread -lm
 
 ### Módulo 3
 
-- Parte 1: el watchdog detecta congelamiento a los 3 segundos y cancela los hilos.
-- Parte 2: ambos hilos terminan correctamente, `paquetes_ok = 2`.
-
-### Módulo 4
-
 Tabla de throughput esperada (aproximada):
 
 | Workers | Buffer | Turnaround (ms) | Espera (ms) | Throughput (p/s) |
