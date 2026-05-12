@@ -1,22 +1,27 @@
 # Centro de Paquetería – Proyecto Final Sistemas Operativos
+
 David Miguel Medina Raymundo (183112) · María Fernanda Morales Hernández (183604)
 
 ---
 
 ## Descripción
+
 Simulación de un centro de distribución de paquetes que demuestra cuatro
 fenómenos clave de Sistemas Operativos mediante hilos en C.
 
 ---
 
 ## Dependencias
+
 ```
-gcc          
+gcc
 libpthread   (incluida en glibc)
 libm         (incluida en glibc)
 librt        (incluida en glibc)
 ```
+
 En Ubuntu/Debian:
+
 ```bash
 sudo apt update && sudo apt install -y build-essential
 ```
@@ -24,18 +29,19 @@ sudo apt update && sudo apt install -y build-essential
 ---
 
 ## Estructura del repositorio
+
 ```
 project/
 ├── src/
 │   ├── modulo1_productor_consumidor.c
 │   ├── modulo2_condicion_carrera.c
-│   ├── modulo4_metricas.c
+│   ├── modulo3_deadlock.c
 │   └── modulo4_metricas.c
 ├── scripts/
 │   └── build_and_run.sh
 ├── results/
-│   ├── logs/          ← salida de cada módulo (generada al ejecutar)
-│   ├── tables/        ← tablas de métricas (copiar de logs)
+│   ├── logs/          ← salida de cada módulo
+│   ├── tables/        ← tablas de métricas 
 │   └── screenshots/   ← capturas de pantalla
 └── README.md
 ```
@@ -45,14 +51,17 @@ project/
 ## Compilación e instrucciones de ejecución
 
 ### Opción A – Script automático (recomendado)
+
 ```bash
 chmod +x scripts/build_and_run.sh
 ./scripts/build_and_run.sh
 ```
-Compila todos los módulos y los ejecuta en secuencia.  
+
+Compila todos los módulos y los ejecuta en secuencia.
 Los logs quedan en `results/logs/moduloN.log`.
 
 ### Opción B – Compilar y ejecutar por módulo
+
 ```bash
 mkdir -p bin
 
@@ -78,7 +87,7 @@ gcc -Wall -O2 -o bin/modulo4 src/modulo4_metricas.c -lpthread -lm
 ## Módulos implementados
 
 | # | Módulo | Concepto de SO |
-|---|--------|---------------|
+|---|--------|----------------|
 | 1 | Productor-Consumidor | Hilos, semáforos, mutex, buffer circular |
 | 2 | Condición de carrera | Race condition, exclusión mutua |
 | 3 | Deadlock | Detección, prevención, orden global de locks |
@@ -89,36 +98,32 @@ gcc -Wall -O2 -o bin/modulo4 src/modulo4_metricas.c -lpthread -lm
 ## Resultados esperados
 
 ### Módulo 1
+
 - El productor inserta exactamente `TOTAL_PAQUETES` paquetes.
 - Los 3 trabajadores los consumen sin pérdidas ni duplicados.
 - El resumen final muestra `producidos == consumidos`.
 
 ### Módulo 2
+
 - Sin mutex: el contador final es **menor** que `NUM_HILOS × INCREMENTOS`.
 - Con mutex: el contador final es **exactamente** `NUM_HILOS × INCREMENTOS`.
 
 ### Módulo 3
+
 - Parte 1: el watchdog detecta congelamiento a los 3 segundos y cancela los hilos.
 - Parte 2: ambos hilos terminan correctamente, `paquetes_ok = 2`.
 
 ### Módulo 4
+
 Tabla de throughput esperada (aproximada):
 
-| Workers | Buffer | Turnaround(ms) | Espera(ms) | Throughput(p/s) |
-|---------|--------|---------------|------------|----------------|
-| 1       | 5      | ~350          | ~250       | ~3.0           |
-| 2       | 5      | ~250          | ~150       | ~5.0           |
-| 4       | 5      | ~180          | ~80        | ~7.5           |
-| 8       | 5      | ~160          | ~60        | ~8.5           |
-| 1       | 10     | ~350          | ~250       | ~3.0           |
-| 4       | 10     | ~170          | ~70        | ~8.0           |
+| Workers | Buffer | Turnaround (ms) | Espera (ms) | Throughput (p/s) |
+|---------|--------|-----------------|-------------|------------------|
+| 1       | 5      | ~350            | ~250        | ~3.0             |
+| 2       | 5      | ~250            | ~150        | ~5.0             |
+| 4       | 5      | ~180            | ~80         | ~7.5             |
+| 8       | 5      | ~160            | ~60         | ~8.5             |
+| 1       | 10     | ~350            | ~250        | ~3.0             |
+| 4       | 10     | ~170            | ~70         | ~8.0             |
 
----
 
-## Conceptos de SO demostrados
-- **Hilos POSIX** (`pthread_create`, `pthread_join`)
-- **Semáforos** (`sem_wait`, `sem_post`) para sincronización productor-consumidor
-- **Mutex** (`pthread_mutex_lock/unlock`) para exclusión mutua
-- **Condición de carrera** y cómo el mutex la previene
-- **Deadlock**: las cuatro condiciones de Coffman y prevención por orden global
-- **Métricas de planificación**: turnaround, tiempo de espera, throughput
